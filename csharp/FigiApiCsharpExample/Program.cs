@@ -16,20 +16,21 @@ namespace FigiApiCsharpExample
             request.RequestFormat = DataFormat.Json;
             request.AddHeader("X-OPENFIGI-APIKEY", "");
             request.AddHeader("Content-Type", "text/json");
-            var list = new List<BloombergRequest>() { new BloombergRequest("US4592001014") };
+            var list = new List<BloombergRequest>()
+            {
+                new BloombergRequest("US4592001014"),
+                new BloombergRequest("MSFT US Equity"),
+                new BloombergRequest("BBG000BLNNH6")
+            };
 
             request.AddJsonBody(list);
 
             var response = client.Post<List<BloombergArrayResponse>>(request);
 
             foreach(var dataInstrument in response.Data)
-            {
-                foreach(var instrument in dataInstrument.data)
-                {
-                    Console.WriteLine(instrument.SecurityDescription);
-                }
-            }
-            
+                if (dataInstrument.data != null && dataInstrument.data.Any())
+                    foreach(var instrument in dataInstrument.data)
+                        Console.WriteLine(instrument.SecurityDescription);
         }
     }
 }
