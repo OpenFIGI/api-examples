@@ -38,13 +38,13 @@ namespace FigiApiCsharpExample
 
         [JsonProperty("idType")]
         public string idType { get; set; }
-        //[XmlElement("idValue")]
+        
         [JsonProperty("idValue")]
         public string idValue { get; set; }
-        //[XmlElement("exchCode")]
+        
         [JsonProperty("exchCode")]
         public string exchCode { get; set; }
-        //[XmlElement("marketSecDes")]
+        
         [JsonProperty("marketSecDes")]
         public string marketSecDes { get; set; }
 
