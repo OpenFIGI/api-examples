@@ -6,6 +6,9 @@ namespace FigiApiCsharpExample
     public class OpenFIGIArrayResponse
     {
         [JsonProperty("data")]
-        public List<OpenFIGIInstrument> data { get; set; }
+        public List<OpenFIGIInstrument> Data { get; set; }
+
+        [JsonProperty("error")]
+        public string Error { get; set; }
     }
 }

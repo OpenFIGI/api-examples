@@ -26,8 +26,8 @@ namespace FigiApiCsharpExample
             var response = client.Post<List<OpenFIGIArrayResponse>>(request);
 
             foreach(var dataInstrument in response.Data)
-                if (dataInstrument.data != null && dataInstrument.data.Any())
-                    foreach(var instrument in dataInstrument.data)
+                if (dataInstrument.Data != null && dataInstrument.Data.Any())
+                    foreach(var instrument in dataInstrument.Data)
                         Console.WriteLine(instrument.SecurityDescription);
         }
     }
