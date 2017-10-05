@@ -50,6 +50,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IJsonSerializer.cs" />
+    <Compile Include="NewtonsoftJsonSerializer.cs" />
     <Compile Include="OpenFIGIArrayResponse.cs" />
     <Compile Include="OpenFIGIInstrument.cs" />
     <Compile Include="OpenFIGIRequest.cs" />

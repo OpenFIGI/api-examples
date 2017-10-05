@@ -16,87 +16,81 @@ namespace FigiApiCsharpExample
 
         public OpenFIGIRequest(string value)
         {
-            marketSecDes = GetMarketSector(value) ?? string.Empty;
-            exchCode = GetExchangeCode(value) ?? string.Empty;
-            if (!string.IsNullOrEmpty(marketSecDes))
-                value = value.Replace(marketSecDes, string.Empty);
-            if (!string.IsNullOrEmpty(exchCode))
-                value = value.Replace(exchCode, string.Empty);
+            MarketSectorDescription = GetMarketSector(value);
+            ExchangeCode = GetExchangeCode(value);
+            if (!string.IsNullOrEmpty(MarketSectorDescription))
+                value = value.Replace(MarketSectorDescription, string.Empty);
+            if (!string.IsNullOrEmpty(ExchangeCode))
+                value = value.Replace(ExchangeCode, string.Empty);
             if (!string.IsNullOrEmpty(value))
-                idValue = string.Join(" ", value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+                IdValue = string.Join(" ", value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
 
 
-            idType = "TICKER";
-            if (!string.IsNullOrEmpty(idValue))
+            IdType = "TICKER";
+            if (!string.IsNullOrEmpty(IdValue))
             {
-                if (Figi.IsMatch(idValue))
-                    idType = "ID_BB_GLOBAL";
-                else if (Isin.IsMatch(idValue))
-                    idType = "ID_ISIN";
+                if (Figi.IsMatch(IdValue))
+                    IdType = "ID_BB_GLOBAL";
+                else if (Isin.IsMatch(IdValue))
+                    IdType = "ID_ISIN";
             }
         }
 
         private OpenFIGIRequest()
         {
-            this.exchCode = this.marketSecDes = this.currency = string.Empty;
+            
         }
 
         public OpenFIGIRequest(string idType, string idValue)
             : this()
         {
-            this.idType = idType;
-            this.idValue = idValue;
+            this.IdType = idType;
+            this.IdValue = idValue;
         }
 
         public OpenFIGIRequest WithExchangeCode(string exchCode)
         {
-            this.exchCode = exchCode;
-            //micCode = string.Empty; ;
+            this.ExchangeCode = exchCode;
+            MicCode = null;
             return this;
         }
 
         public OpenFIGIRequest WithMicCode(string micCode)
         {
-            //this.micCode = micCode;
-            exchCode = string.Empty;
+            this.MicCode = micCode;
+            ExchangeCode = null;
             return this;
         }
 
         public OpenFIGIRequest WithCurrency(string currency)
         {
-            this.currency = currency;
+            this.Currency = currency;
             return this;
         }
 
         public OpenFIGIRequest WithMarketSectorDescription(string marketSectorDescription)
         {
-            marketSecDes = marketSectorDescription;
+            MarketSectorDescription = marketSectorDescription;
             return this;
         }
 
         [JsonProperty("idType")]
-        [XmlElement("idType")]
-        public string idType { get; set; }
+        public string IdType { get; set; }
         
         [JsonProperty("idValue")]
-        [XmlElement("idValue")]
-        public string idValue { get; set; }
+        public string IdValue { get; set; }
         
         [JsonProperty("exchCode")]
-        [XmlElement("exchCode")]
-        public string exchCode { get; set; }
+        public string ExchangeCode { get; set; }
 
-        //[JsonProperty("micCode")]
-        //[XmlElement("micCode")]
-        //public string micCode { get; set; }
+        [JsonProperty("micCode")]
+        public string MicCode { get; set; }
 
         [JsonProperty("currency")]
-        [XmlElement("currency")]
-        public string currency { get; set; }
+        public string Currency { get; set; }
 
         [JsonProperty("marketSecDes")]
-        [XmlElement("marketSecDes")]
-        public string marketSecDes { get; set; }
+        public string MarketSectorDescription { get; set; }
 
 
         private static string GetMarketSector(string value)

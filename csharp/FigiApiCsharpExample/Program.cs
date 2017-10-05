@@ -21,6 +21,8 @@ namespace FigiApiCsharpExample
                 new OpenFIGIRequest("ID_BB_GLOBAL", "BBG000BLNNH6")
             };
 
+            request.RequestFormat = DataFormat.Json;
+            request.JsonSerializer = new NewtonsoftJsonSerializer();
             request.AddJsonBody(list);
 
             var response = client.Post<List<OpenFIGIArrayResponse>>(request);
