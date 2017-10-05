@@ -16,9 +16,9 @@ namespace FigiApiCsharpExample
             request.AddHeader("Content-Type", "text/json");
             var list = new List<OpenFIGIRequest>()
             {
-                new OpenFIGIRequest("US4592001014"),
-                new OpenFIGIRequest("MSFT US Equity"),
-                new OpenFIGIRequest("BBG000BLNNH6")
+                new OpenFIGIRequest("ID_ISIN", "US4592001014"),
+                new OpenFIGIRequest("TICKER", "MSFT").WithExchangeCode("US").WithMarketSectorDescription("Equity"),
+                new OpenFIGIRequest("ID_BB_GLOBAL", "BBG000BLNNH6")
             };
 
             request.AddJsonBody(list);

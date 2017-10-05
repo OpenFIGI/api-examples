@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Xml.Serialization;
 
 namespace FigiApiCsharpExample
 {
@@ -15,8 +16,8 @@ namespace FigiApiCsharpExample
 
         public OpenFIGIRequest(string value)
         {
-            marketSecDes = GetMarketSector(value) ?? "";
-            exchCode = GetExchangeCode(value) ?? "";
+            marketSecDes = GetMarketSector(value) ?? string.Empty;
+            exchCode = GetExchangeCode(value) ?? string.Empty;
             if (!string.IsNullOrEmpty(marketSecDes))
                 value = value.Replace(marketSecDes, string.Empty);
             if (!string.IsNullOrEmpty(exchCode))
@@ -35,17 +36,66 @@ namespace FigiApiCsharpExample
             }
         }
 
+        private OpenFIGIRequest()
+        {
+            this.exchCode = this.marketSecDes = this.currency = string.Empty;
+        }
+
+        public OpenFIGIRequest(string idType, string idValue)
+            : this()
+        {
+            this.idType = idType;
+            this.idValue = idValue;
+        }
+
+        public OpenFIGIRequest WithExchangeCode(string exchCode)
+        {
+            this.exchCode = exchCode;
+            //micCode = string.Empty; ;
+            return this;
+        }
+
+        public OpenFIGIRequest WithMicCode(string micCode)
+        {
+            //this.micCode = micCode;
+            exchCode = string.Empty;
+            return this;
+        }
+
+        public OpenFIGIRequest WithCurrency(string currency)
+        {
+            this.currency = currency;
+            return this;
+        }
+
+        public OpenFIGIRequest WithMarketSectorDescription(string marketSectorDescription)
+        {
+            marketSecDes = marketSectorDescription;
+            return this;
+        }
 
         [JsonProperty("idType")]
+        [XmlElement("idType")]
         public string idType { get; set; }
         
         [JsonProperty("idValue")]
+        [XmlElement("idValue")]
         public string idValue { get; set; }
         
         [JsonProperty("exchCode")]
+        [XmlElement("exchCode")]
         public string exchCode { get; set; }
-        
+
+        //[JsonProperty("micCode")]
+        //[XmlElement("micCode")]
+        //public string micCode { get; set; }
+
+        [JsonProperty("currency")]
+        [XmlElement("currency")]
+        public string currency { get; set; }
+
         [JsonProperty("marketSecDes")]
+        [XmlElement("marketSecDes")]
         public string marketSecDes { get; set; }
 
 
