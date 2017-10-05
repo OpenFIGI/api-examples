@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace FigiApiCsharpExample
 {
-    public class BloombergArrayResponse
+    public class OpenFIGIArrayResponse
     {
         [JsonProperty("data")]
-        public List<BloombergInstrument> data { get; set; }
+        public List<OpenFIGIInstrument> data { get; set; }
     }
 }

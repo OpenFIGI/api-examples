@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FigiApiCsharpExample
 {
-    public class BloombergInstrument
+    public class OpenFIGIInstrument
     {
         [JsonProperty("figi")]
         public string figi { get; set; }

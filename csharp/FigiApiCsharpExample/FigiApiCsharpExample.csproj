@@ -50,9 +50,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BloombergArrayResponse.cs" />
-    <Compile Include="BloombergInstrument.cs" />
-    <Compile Include="BloombergRequest.cs" />
+    <Compile Include="OpenFIGIArrayResponse.cs" />
+    <Compile Include="OpenFIGIInstrument.cs" />
+    <Compile Include="OpenFIGIRequest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
