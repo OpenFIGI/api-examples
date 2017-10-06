@@ -1,6 +1,6 @@
 # OpenFIGI API C# Example
 
-[![Build status](https://ci.appveyor.com/api/projects/status/github/achvaicer/api-examples?branch=master&svg=true)](ci.appveyor.com/api/projects/status/github/achvaicer/api-examples)
+[![Build status](https://ci.appveyor.com/api/projects/status/github/achvaicer/api-examples?branch=master&svg=true)](https://ci.appveyor.com/api/projects/status/github/achvaicer/api-examples)
 
 
 A simple example of using OpenFIGI API with C#.
