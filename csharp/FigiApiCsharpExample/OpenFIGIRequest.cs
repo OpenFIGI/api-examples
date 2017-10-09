@@ -51,14 +51,12 @@ namespace FigiApiCsharpExample
         public OpenFIGIRequest WithExchangeCode(string exchCode)
         {
             this.ExchangeCode = exchCode;
-            MicCode = null;
             return this;
         }
 
         public OpenFIGIRequest WithMicCode(string micCode)
         {
             this.MicCode = micCode;
-            ExchangeCode = null;
             return this;
         }
 
