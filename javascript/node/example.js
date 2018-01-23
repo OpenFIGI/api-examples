@@ -12,23 +12,12 @@ var https = require('https'),
     format = require('util').format;
 
 var apiKey = null,
-    headers = { 'Content-Type': 'text/json' },
-    options = {
-        hostname: 'api.openfigi.com',
-        path: '/v1/mapping',
-        method: 'POST',
-        headers: headers
-    },
     jobs = [
         { idType: 'ID_ISIN', idValue: 'US4592001014' },
         { idType: 'ID_WERTPAPIER', idValue: '851399', exchCode: 'US' },
         { idType: 'ID_BB_UNIQUE', idValue: 'EQ0010080100001000', currency: 'USD' },
         { idType: 'ID_SEDOL', idValue: '2005973', 'micCode': 'EDGX', currency: 'USD' }
     ];
-
-if (apiKey) {
-    options.headers['X-OPENFIGI-APIKEY'] = apiKey;
-}
 
 main();
 
@@ -52,12 +41,14 @@ function main () {
 function jobResultsHandler (jobs, jobResults) {
     jobResults.forEach(function (result, index) {
         var job = jobs[index],
-            figiArr = (result.data || [])
-                .map(function (d) {
-                    return d.figi;
-                }),
-            resultStr = figiArr.join(', ') || result['error'],
-            output = format('%s maps to FIGI(s) ->\n%s\n---', prettyObj(job), resultStr);
+            jobStr = Object.keys(job)
+                .map(function (key) { return job[key]; })
+                .join('|'),
+            figisStr = (result.data || [])
+                .map(function (d) { return d.figi; })
+                .join(','),
+            resultStr = figisStr || result['error'],
+            output = format('%s maps to FIGI(s) ->\n%s\n---', jobStr, resultStr);
 
         console.log(output);
     });
@@ -82,7 +73,18 @@ function jobResultsHandler (jobs, jobResults) {
  * @return {undefined}     asynchronous
  */
 function mapJobs (jobs, cb) {
-    var req = https.request(options, function (res) {
+    var options = {
+            hostname: 'api.openfigi.com',
+            path: '/v1/mapping',
+            method: 'POST',
+            headers: { 'Content-Type': 'text/json' }
+        },
+        req;
+
+    if (apiKey)
+        options.headers['X-OPENFIGI-APIKEY'] = apiKey;
+
+    req = https.request(options, function (res) {
         var data = '';
 
         res.setEncoding('utf8');
@@ -98,22 +100,9 @@ function mapJobs (jobs, cb) {
 
     req.on('error', function (e) {
         console.error(e);
-        process.exit(1);
+        throw e;
     });
 
     req.write(JSON.stringify(jobs));
     req.end();
-}
-
-/**
- * Format an Object for `print`ing.
- * @param  {Object} o The Object to format
- * @return {String}   A "pretty" string represention of `o`.
- */
-function prettyObj (o) {
-    return Object.keys(o)
-        .map(function (key) {
-            return format('%s=%s', key, o[key]);
-        })
-        .join('|');
 }
