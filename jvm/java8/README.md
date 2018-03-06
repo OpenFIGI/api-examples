@@ -19,3 +19,10 @@ rm ./src/main/java/App.java
 ./gradlew build
 ./gradlew run
 ```
+
+To run the example with the sample dockerfile
+
+```
+docker build . -t example
+docker run example --rm
+```
