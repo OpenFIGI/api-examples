@@ -9,6 +9,7 @@ namespace FigiApiCsharpExample
     {
         static void Main(string[] args)
         {
+            System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
             var client = new RestClient("https://api.openfigi.com/v1/mapping");
             var request = new RestRequest(Method.POST);
             request.RequestFormat = DataFormat.Json;
