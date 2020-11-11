@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#include <iostream>
+#include <sstream>
 #include <stdexcept>
 
 
@@ -36,7 +36,7 @@ public:
         return _resp.str();
     }
     size_t operator() (curlpp::Easy *handle, char* ptr, size_t size, size_t nmemb) {
-        _resp << ptr;
+        _resp.write(ptr, size * nmemb);
         return size * nmemb;
     }
 private:
