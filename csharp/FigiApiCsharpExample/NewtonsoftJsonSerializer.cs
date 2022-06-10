@@ -31,7 +31,7 @@ namespace FigiApiCsharpExample
             return JsonConvert.SerializeObject(obj, settings);
         }
 
-        public T Deserialize<T>(RestSharp.IRestResponse response)
+        public T Deserialize<T>(RestSharp.RestResponse response)
         {
             var content = response.Content;
             return JsonConvert.DeserializeObject<T>(content, settings);

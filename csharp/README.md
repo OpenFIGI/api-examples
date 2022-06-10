@@ -7,5 +7,6 @@ A simple example of using OpenFIGI API with C#.
 
 
 Nuget dependencies
- - [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json) (aka Json.NET) to serialize/desirialize JSON.
+ - [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json) (aka Json.NET) to Serialize/Deserialize JSON.
  - [RestSharp](https://github.com/restsharp/RestSharp) as a REST client.
+ - [RestSharp.Serializers.NewtonsoftJson] (https://github.com/restsharp/RestSharp/tree/dev/src/RestSharp.Serializers.NewtonsoftJson)
