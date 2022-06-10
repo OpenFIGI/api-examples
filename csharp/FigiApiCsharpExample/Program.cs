@@ -34,8 +34,12 @@ namespace FigiApiCsharpExample
             foreach(var dataInstrument in response)
             {
                 if (dataInstrument.Data != null && dataInstrument.Data.Any())
+                {
                     foreach (var instrument in dataInstrument.Data)
+                    {
                         Console.WriteLine(instrument.SecurityDescription);
+                    }
+                }
                 else if (dataInstrument.Error != null)
                 {
                     Console.WriteLine(dataInstrument.Error);
