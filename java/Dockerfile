@@ -11,16 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-FROM debian
 
-RUN apt-get update && apt-get -y install build-essential git libcurl4-openssl-dev \
-   && git clone https://github.com/DaveGamble/cJSON.git \
-   && cd cJSON && make all && cd
+FROM openjdk:21
 
-COPY . /example
+WORKDIR /OpenFIGI
 
-WORKDIR /example
-
-RUN gcc ./src/*.c /cJSON/cJSON.c  -I ./include -I /cJSON -lcurl -o example.o
-
-CMD ["/example/example.o"]
+COPY . .

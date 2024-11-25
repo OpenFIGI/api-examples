@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.12
+
 # Copyright 2017 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -11,87 +13,82 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import json
-import urllib2
+import urllib.request
+import urllib.parse
+import os
 
-'''
+"""
 See https://www.openfigi.com/api for more information.
-'''
 
-openfigi_apikey = ''  # Put API Key here
-jobs = [
-    {'idType': 'ID_ISIN', 'idValue': 'US4592001014'},
-    {'idType': 'ID_WERTPAPIER', 'idValue': '851399', 'exchCode': 'US'},
-    {'idType': 'ID_BB_UNIQUE', 'idValue': 'EQ0010080100001000', 'currency': 'USD'},
-    {'idType': 'ID_SEDOL', 'idValue': '2005973', 'micCode': 'EDGX', 'currency': 'USD'}
-]
+This script is written to be run by python3 - tested with python3.12 - without any external libraries.
+For more involved use cases, consider using open source packages: https://pypi.org/
+"""
 
+JsonType = None | int | str | bool | list["JsonType"] | dict[str, "JsonType"]
 
-def map_jobs(jobs):
-    '''
-    Send an collection of mapping jobs to the API in order to obtain the
-    associated FIGI(s).
+OPENFIGI_API_KEY = os.environ.get(
+    "OPENFIGI_API_KEY", None
+)  # Put your API key here or in env var
 
-    Parameters
-    ----------
-    jobs : list(dict)
-        A list of dicts that conform to the OpenFIGI API request structure. See
-        https://www.openfigi.com/api#request-format for more information. Note
-        rate-limiting requirements when considering length of `jobs`.
-
-    Returns
-    -------
-    list(dict)
-        One dict per item in `jobs` list that conform to the OpenFIGI API
-        response structure.  See https://www.openfigi.com/api#response-fomats
-        for more information.
-    '''
-    handler = urllib2.HTTPHandler()
-    opener = urllib2.build_opener(handler)
-    openfigi_url = 'https://api.openfigi.com/v1/mapping'
-    request = urllib2.Request(openfigi_url, data=json.dumps(jobs))
-    request.add_header('Content-Type','application/json')
-    if openfigi_apikey:
-        request.add_header('X-OPENFIGI-APIKEY', openfigi_apikey)
-    request.get_method = lambda: 'POST'
-    connection = opener.open(request)
-    if connection.code != 200:
-        raise Exception('Bad response code {}'.format(str(response.status_code)))
-    return json.loads(connection.read())
+OPENFIGI_BASE_URL = "https://api.openfigi.com"
 
 
-def job_results_handler(jobs, job_results):
-    '''
-    Handle the `map_jobs` results.  See `map_jobs` definition for more info.
+def api_call(
+    path: str,
+    data: dict | None = None,
+    method: str = "POST",
+) -> JsonType:
+    """
+    Make an api call to `api.openfigi.com`.
+    Uses builtin `urllib` library, end users may prefer to
+    swap out this function with another library of their choice
 
-    Parameters
-    ----------
-    jobs : list(dict)
-        The original list of mapping jobs to perform.
-    job_results : list(dict)
-        The results of the mapping job.
+    Args:
+        path (str): API endpoint, for example "search"
+        method (str, optional): HTTP request method. Defaults to "POST".
+        data (dict | None, optional): HTTP request data. Defaults to None.
 
-    Returns
-    -------
-        None
-    '''
-    for job, result in zip(jobs, job_results):
-        job_str = '|'.join(job.values())
-        figis_str = ','.join([d['figi'] for d in result.get('data', [])])
-        result_str = figis_str or result.get('error')
-        output = '%s maps to FIGI(s) ->\n%s\n---' % (job_str, result_str)
-        print(output)
+    Returns:
+        JsonType: Response of the api call parsed as a JSON object
+    """
+
+    headers = {"Content-Type": "application/json"}
+    if OPENFIGI_API_KEY:
+        headers |= {"X-OPENFIGI-APIKEY": OPENFIGI_API_KEY}
+
+    request = urllib.request.Request(
+        url=urllib.parse.urljoin(OPENFIGI_BASE_URL, path),
+        data=data and bytes(json.dumps(data), encoding="utf-8"),
+        headers=headers,
+        method=method,
+    )
+
+    with urllib.request.urlopen(request) as response:
+        json_response_as_string = response.read().decode("utf-8")
+        json_obj = json.loads(json_response_as_string)
+        return json_obj
 
 
 def main():
-    '''
-    Map the defined `jobs` and handle the results.
+    """
+    Make search and mapping API requests and print the results
+    to the console
 
-    Returns
-    -------
+    Returns:
         None
-    '''
-    job_results = map_jobs(jobs)
-    job_results_handler(jobs, job_results)
+    """
+    search_request = {"query": "APPLE"}
+    print("Making a search request:", search_request)
+    search_results = api_call("/v3/search", search_request)
+    print("Search response:", json.dumps(search_results, indent=2))
 
-main()
+    jobsRequest = [{"idType": "ID_ISIN", "idValue": "US4592001014"}]
+    print("Making a mapping request:", jobsRequest)
+    jobResults = api_call("/v3/mapping", jobsRequest)
+    print("Mapping response:", json.dumps(jobResults, indent=2))
+
+
+if __name__ == "__main__":
+    main()

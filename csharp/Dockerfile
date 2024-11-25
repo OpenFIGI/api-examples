@@ -12,18 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM gradle:jdk
+FROM mcr.microsoft.com/dotnet/sdk:8.0
 
-RUN mkdir ./example; \
-    cd ./example; \
-    gradle init --type java-application; \
-    rm -rf src/test; \
-    rm src/main/java/App.java
+# https://www.nuget.org/packages/dotnet-script/
+RUN dotnet tool install dotnet-script --tool-path /usr/bin
 
-COPY ./src/build.gradle ./example/
+WORKDIR /OpenFIGI
 
-COPY ./src/Example.java ./example/src/main/java/
-
-WORKDIR ./example
-
-CMD ./gradlew build && ./gradlew run
+COPY . .

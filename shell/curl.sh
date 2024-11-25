@@ -14,13 +14,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# If you have an API key, add another header line within the curl command below
-# as follows:
-# -H 'X-OPENFIGI-APIKEY: YOUR_API_KEY' \
 # For more information on the format of the request body (-d arg) and the
 # response, see https://www.openfigi.com/api
 
-curl -X POST \
+api_call() {
+     path=$1
+     data=$2
+     openfigi_api_key=${OPENFIGI_API_KEY:-""} # Put your API key here or in env var
+
+     cmd="curl -X POST \
      -H 'Content-Type: text/json' \
-     -d '[{"idType":"ID_WERTPAPIER","idValue":"851399","exchCode":"US"}]' \
-    'https://api.openfigi.com/v1/mapping'
+     -d '$data' "
+
+     if [ -n "$openfigi_api_key" ]; then
+          cmd="$cmd -H 'X-OPENFIGI-APIKEY: $openfigi_api_key'"
+     fi
+
+     cmd="$cmd 'https://api.openfigi.com/v3/$path'"
+
+     echo "Request:" $cmd
+     echo -n "Response: "
+     eval "$cmd"
+}
+
+echo "Search API Call Example:"
+api_call 'search' '{"query":"apple"}'
+
+echo "Mapping API Call Example:"
+api_call 'mapping' '[{"idType":"ID_WERTPAPIER","idValue":"851399","exchCode":"US"}]'
