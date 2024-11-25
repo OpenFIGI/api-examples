@@ -1,3 +1,5 @@
+#!/usr/bin/env pwsh
+
 # Copyright 2017 Bloomberg Finance L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,22 +18,24 @@
 
 # See https://www.openfigi.com/api for more information.
 
-$uri = 'https://api.openfigi.com/v2/mapping'
-
-$openfigi_apikey = ''  # Put API Key here
+$openfigi_apikey = $Env:OPENFIGI_API_KEY  # Put API Key here or in env var
 
 $headers = @{
     'Content-Type' = 'text/json';
     'X-OPENFIGI-APIKEY' = $openfigi_apikey
 }
 
-$jobs = @(
+# Search Example
+$searchRequest = @{"query" = "APPLE"} | ConvertTo-Json
+Write-Output "Making a search request:", $searchRequest
+$searchResponse = Invoke-RestMethod -Uri 'https://api.openfigi.com/v3/search' -Method Post -Headers $headers -Body $searchRequest
+Write-Output "Search response:", ($searchResponse | Format-List -Property *)
+
+# Mapping Example
+$mappingRequest = @(
     @{'idType' = 'ID_ISIN'; 'idValue' = 'US4592001014'},
-    @{'idType' = 'ID_WERTPAPIER'; 'idValue' = '851399'; 'exchCode' = 'US'},
-    @{'idType' = 'ID_BB_UNIQUE'; 'idValue' = 'EQ0010080100001000'; 'currency' = 'USD'},
-    @{'idType' = 'ID_SEDOL'; 'idValue' = '2005973'; 'micCode' = 'EDGX'; 'currency' = 'USD'}
-)
-
-$JSONBody = $jobs | ConvertTo-Json 
-
-Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -Body $JSONBody -OutFile 'out.json' -PassThru
+    @{'idType' = 'ID_WERTPAPIER'; 'idValue' = '851399'; 'exchCode' = 'US'}
+) | ConvertTo-Json
+Write-Output "Making a mapping request:", $mappingRequest
+$mappingResponse = Invoke-RestMethod -Uri 'https://api.openfigi.com/v3/mapping' -Method Post -Headers $headers -Body $mappingRequest
+Write-Output "Mapping response:", ($mappingResponse | Format-List -Property *)
