@@ -26,16 +26,15 @@ $headers = @{
 }
 
 # Search Example
-$searchRequest = @{"query" = "APPLE"} | ConvertTo-Json
+$searchRequest = ConvertTo-Json @{"query" = "APPLE"}
 Write-Output "Making a search request:", $searchRequest
 $searchResponse = Invoke-RestMethod -Uri 'https://api.openfigi.com/v3/search' -Method Post -Headers $headers -Body $searchRequest
 Write-Output "Search response:", ($searchResponse | Format-List -Property *)
 
 # Mapping Example
-$mappingRequest = @(
-    @{'idType' = 'ID_ISIN'; 'idValue' = 'US4592001014'},
-    @{'idType' = 'ID_WERTPAPIER'; 'idValue' = '851399'; 'exchCode' = 'US'}
-) | ConvertTo-Json
+$mappingRequest = ConvertTo-Json @(
+    @{'idType'='ID_BB_GLOBAL';'idValue'='BBG000BLNNH6';'exchCode'='US'}
+)
 Write-Output "Making a mapping request:", $mappingRequest
 $mappingResponse = Invoke-RestMethod -Uri 'https://api.openfigi.com/v3/mapping' -Method Post -Headers $headers -Body $mappingRequest
 Write-Output "Mapping response:", ($mappingResponse | Format-List -Property *)

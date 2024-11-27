@@ -64,8 +64,9 @@ async Task Main()
   Dictionary<string, string>[] mappingRequest = new[]
   {
     new Dictionary<string, string>(){
-    { "idType", "ID_ISIN" },
-    { "idValue", "US4592001014" },
+    { "idType", "ID_BB_GLOBAL" },
+    { "idValue", "BBG000BLNNH6" },
+    { "exchCode", "US" },
   },
   };
   Console.WriteLine($"Making a mapping request: {JsonSerializer.Serialize(mappingRequest)}");

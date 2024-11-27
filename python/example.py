@@ -81,13 +81,15 @@ def main():
     """
     search_request = {"query": "APPLE"}
     print("Making a search request:", search_request)
-    search_results = api_call("/v3/search", search_request)
-    print("Search response:", json.dumps(search_results, indent=2))
+    search_response = api_call("/v3/search", search_request)
+    print("Search response:", json.dumps(search_response, indent=2))
 
-    jobsRequest = [{"idType": "ID_ISIN", "idValue": "US4592001014"}]
-    print("Making a mapping request:", jobsRequest)
-    jobResults = api_call("/v3/mapping", jobsRequest)
-    print("Mapping response:", json.dumps(jobResults, indent=2))
+    mapping_request = [
+        {"idType":"ID_BB_GLOBAL","idValue":"BBG000BLNNH6","exchCode":"US"},
+    ]
+    print("Making a mapping request:", mapping_request)
+    mapping_response = api_call("/v3/mapping", mapping_request)
+    print("Mapping response:", json.dumps(mapping_response, indent=2))
 
 
 if __name__ == "__main__":

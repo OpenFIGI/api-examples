@@ -20,6 +20,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 
+
 class OpenFigi {
 
     static String openFigiBaseUrl = "https://api.openfigi.com";
@@ -43,7 +44,7 @@ class OpenFigi {
 
         {
             // Mapping API request example
-            String mappingRequest = "[{\"idType\": \"ID_ISIN\", \"idValue\": \"US4592001014\"}]";
+            String mappingRequest = "[{\"idType\": \"ID_BB_GLOBAL\", \"idValue\": \"BBG000BLNNH6\", \"exchCode\": \"US\"}]";
             System.out.println("Making a mapping request: " + mappingRequest);
             String mappingResponse = OpenFigi.makePostApiCall("/v3/mapping", mappingRequest);
             System.out.println("Mapping response: " + mappingResponse);

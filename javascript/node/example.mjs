@@ -72,13 +72,15 @@ async function apiCall(path, data) {
 async function main() {
   const searchRequest = { query: "APPLE" };
   console.log("Making a search request:", searchRequest);
-  const searchResults = await apiCall("/v3/search", searchRequest);
-  console.log("Search response:", JSON.stringify(searchResults, null, 2));
+  const searchResponse = await apiCall("/v3/search", searchRequest);
+  console.log("Search response:", JSON.stringify(searchResponse, null, 2));
 
-  const jobsRequest = [{ idType: "ID_ISIN", idValue: "US4592001014" }];
-  console.log("Making a mapping request:", jobsRequest);
-  const jobResults = await apiCall("/v3/mapping", jobsRequest);
-  console.log("Mapping response:", JSON.stringify(jobResults, null, 2));
+  const mappingRequest = [
+    { idType: "ID_BB_GLOBAL", idValue: "BBG000BLNNH6", exchCode: "US" },
+  ];
+  console.log("Making a mapping request:", mappingRequest);
+  const mappingResponse = await apiCall("/v3/mapping", mappingRequest);
+  console.log("Mapping response:", JSON.stringify(mappingResponse, null, 2));
 }
 
 await main();
