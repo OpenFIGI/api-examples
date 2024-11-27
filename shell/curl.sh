@@ -30,7 +30,7 @@ api_call() {
           cmd="$cmd -H 'X-OPENFIGI-APIKEY: $openfigi_api_key'"
      fi
 
-     cmd="$cmd 'https://api.openfigi.com/v3/$path'"
+     cmd="$cmd 'https://api.openfigi.com$path'"
 
      echo "Request:" $cmd
      echo -n "Response: "
@@ -38,7 +38,7 @@ api_call() {
 }
 
 echo "Search API Call Example:"
-api_call 'search' '{"query":"apple"}'
+api_call '/v3/search' '{"query":"apple"}'
 
 echo "Mapping API Call Example:"
-api_call 'mapping' '[{"idType":"ID_WERTPAPIER","idValue":"851399","exchCode":"US"}]'
+api_call '/v3/mapping' '[{"idType":"ID_BB_GLOBAL","idValue":"BBG000BLNNH6","exchCode":"US"}]'
