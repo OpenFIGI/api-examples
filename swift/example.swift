@@ -22,14 +22,14 @@ import Foundation
 /*
  See https://www.openfigi.com/api for more information.
  
- This script is written to be run with Swift 5.9 without any external dependencies.
+ This script is written to be run with Swift 6.0 without any external dependencies.
  For more involved use cases, consider using open source packages via Swift Package Manager.
  */
 
 let OPENFIGI_API_KEY = ProcessInfo.processInfo.environment["OPENFIGI_API_KEY"]
 let OPENFIGI_BASE_URL = "https://api.openfigi.com"
 
-func apiCall(path: String, data: Any? = nil, method: String = "POST") throws -> Any {
+func apiCall(path: String, data: Any? = nil, method: String = "POST") async throws -> Any {
     /*
      Make an api call to `api.openfigi.com`.
      Uses builtin `URLSession` library, end users may prefer to
@@ -44,10 +44,6 @@ func apiCall(path: String, data: Any? = nil, method: String = "POST") throws -> 
          Response of the api call parsed as a JSON object
      */
     
-    let semaphore = DispatchSemaphore(value: 0)
-    var result: Any?
-    var resultError: Error?
-    
     let url = URL(string: OPENFIGI_BASE_URL)!.appendingPathComponent(path)
     var request = URLRequest(url: url)
     request.httpMethod = method
@@ -58,41 +54,14 @@ func apiCall(path: String, data: Any? = nil, method: String = "POST") throws -> 
     }
     
     if let data = data {
-        let jsonData = try JSONSerialization.data(withJSONObject: data)
-        request.httpBody = jsonData
+        request.httpBody = try JSONSerialization.data(withJSONObject: data)
     }
     
-    let session = URLSession(configuration: .default)
-    session.dataTask(with: request) { (data, response, error) in
-        defer { semaphore.signal() }
-        
-        if let error = error {
-            resultError = error
-            return
-        }
-        
-        guard let data = data else {
-            resultError = NSError(domain: "", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])
-            return
-        }
-        
-        do {
-            result = try JSONSerialization.jsonObject(with: data)
-        } catch {
-            resultError = error
-        }
-    }.resume()
-    
-    semaphore.wait()
-    
-    if let error = resultError {
-        throw error
-    }
-    
-    return result!
+    let (data, _) = try await URLSession.shared.data(for: request)
+    return try JSONSerialization.jsonObject(with: data)
 }
 
-func main() throws {
+func main() async throws {
     /*
      Make search and mapping API requests and print the results
      to the console
@@ -103,7 +72,7 @@ func main() throws {
     
     let searchRequest = ["query": "APPLE"]
     print("Making a search request:", searchRequest)
-    let searchResponse = try apiCall(path: "/v3/search", data: searchRequest)
+    let searchResponse = try await apiCall(path: "/v3/search", data: searchRequest)
     let searchJson = try JSONSerialization.data(withJSONObject: searchResponse, options: [.prettyPrinted])
     print("Search response:", String(data: searchJson, encoding: .utf8)!)
 
@@ -111,14 +80,21 @@ func main() throws {
         ["idType": "ID_BB_GLOBAL", "idValue": "BBG000BLNNH6", "exchCode": "US"]
     ]
     print("Making a mapping request:", mappingRequest)
-    let mappingResponse = try apiCall(path: "/v3/mapping", data: mappingRequest)
+    let mappingResponse = try await apiCall(path: "/v3/mapping", data: mappingRequest)
     let mappingJson = try JSONSerialization.data(withJSONObject: mappingResponse, options: [.prettyPrinted])
     print("Mapping response:", String(data: mappingJson, encoding: .utf8)!)
 }
 
-do {
-    try main()
-} catch {
-    print("Error:", error)
-    exit(1)
+// Create and run async task for main function
+Task {
+    do {
+        try await main()
+        exit(0)
+    } catch {
+        print("Error:", error)
+        exit(1)
+    }
 }
+
+// Keep the program running until the async task completes
+RunLoop.main.run()
