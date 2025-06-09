@@ -1,4 +1,23 @@
 let searchTable;
+const ENUMS = {
+  securityType: [
+    'Common Stock',
+    'Preferred Stock',
+    'Corporate Bond',
+    'Government Bond',
+    'Index'
+  ],
+  idType: [
+    'ID_ISIN',
+    'ID_BB_GLOBAL',
+    'ID_SEDOL',
+    'ID_CUSIP'
+  ]
+};
+
+function copyEnum(values) {
+  navigator.clipboard.writeText(values.join('\n'));
+}
 
 function renderSearchTable(data) {
   const results = data.data || [];
@@ -9,7 +28,7 @@ function renderSearchTable(data) {
     for (const key of Object.keys(results[0])) {
       columns.push({ data: key });
       const th = document.createElement('th');
-      th.textContent = key;
+      th.textContent = key === 'exchCode' || key === 'micCode' ? 'MIC' : key;
       header.appendChild(th);
     }
   }
@@ -22,10 +41,15 @@ function renderSearchTable(data) {
 
 document.getElementById('search-btn').addEventListener('click', () => {
   const query = document.getElementById('search-query').value;
+  const exchCode = document.getElementById('search-exch').value;
+  const securityType = document.getElementById('search-sec-type').value;
+  const body = { query };
+  if (exchCode) body.exchCode = exchCode;
+  if (securityType) body.securityType = securityType;
   fetch('/search', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query })
+    body: JSON.stringify(body)
   })
     .then(res => res.json())
     .then(renderSearchTable)
@@ -38,13 +62,17 @@ function addMappingRow() {
   const div = document.createElement('div');
   div.className = 'mapping-row';
   div.innerHTML = '<input class="idType" placeholder="idType"> ' +
+                  '<button class="copy-idtype">copy enum</button> ' +
                   '<input class="idValue" placeholder="idValue"> ' +
                   '<input class="exchCode" placeholder="exchCode">';
   document.getElementById('mapping-rows').appendChild(div);
+  div.querySelector('.copy-idtype').addEventListener('click', () => copyEnum(ENUMS.idType));
 }
 
 document.getElementById('add-row').addEventListener('click', addMappingRow);
 addMappingRow();
+
+document.getElementById('copy-sec-type').addEventListener('click', () => copyEnum(ENUMS.securityType));
 
 document.getElementById('map-btn').addEventListener('click', () => {
   const rows = document.querySelectorAll('.mapping-row');

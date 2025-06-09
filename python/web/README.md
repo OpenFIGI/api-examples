@@ -4,6 +4,11 @@ This small web application demonstrates how to make search and mapping requests
 to the OpenFIGI API from a browser. It uses only python's built in modules so no
 additional packages are required.
 
+The page provides fields for a basic query as well as optional advanced search
+inputs such as `exchCode` and `securityType`. Buttons labeled `copy enum` are
+available next to any enumerated input and will copy the possible values to your
+clipboard.
+
 ## Instructions
 
 Prerequisites: `python3.12` must be installed.
