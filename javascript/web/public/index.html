@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OpenFIGI Web Example</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #search-section, #mapping-section { margin-bottom: 40px; }
+    .mapping-row { margin-bottom: 5px; }
+    .mapping-result { background: #f1f1f1; padding: 10px; margin-bottom: 10px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>OpenFIGI Web Example</h1>
+  <div id="search-section">
+    <h2>Search</h2>
+    <input type="text" id="search-query" placeholder="Enter search query">
+    <button id="search-btn">Search</button>
+    <table id="search-table" class="display" style="width:100%">
+      <thead>
+        <tr id="search-header"></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div id="mapping-section">
+    <h2>Mapping</h2>
+    <div id="mapping-rows"></div>
+    <button id="add-row">Add row</button>
+    <button id="map-btn">Map</button>
+    <div id="mapping-results"></div>
+  </div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
