@@ -697,3 +697,8 @@ PRINT '2. SELECT * FROM vw_SecuritiesWithQuality;';
 PRINT '3. SELECT * FROM vw_DataQualityDistribution;';
 PRINT '=====================================================================';
 GO
+
+
+/**
+ * Testing commit
+ */
