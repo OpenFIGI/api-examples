@@ -7,18 +7,6 @@
 -- GO
 
 /**
- * @description Enables OLE Automation for HTTP API calls
- * @purpose Required for making external HTTP requests to OpenFIGI API
- */
-PRINT 'Enabling OLE Automation for HTTP requests...';
-EXEC sp_configure 'show advanced options', 1;
-RECONFIGURE;
-EXEC sp_configure 'Ole Automation Procedures', 1;
-RECONFIGURE;
-PRINT 'OLE Automation enabled successfully!';
-GO
-
-/**
  * @description Creates custom data types for financial instrument identifiers
  * @purpose Ensures consistent data types across all tables and functions
  */
@@ -321,98 +309,8 @@ PRINT 'Utility functions created successfully!';
 
 GO
 
-/**
- * @description Makes HTTP request to OpenFIGI API
- * @param @ISIN - ISIN code to lookup
- * @param @RetryAttempt - Current retry attempt number
- * @returns Table with API response data
- * @purpose Encapsulates OpenFIGI API communication logic
- */
-CREATE FUNCTION dbo.fn_CallOpenFIGIAPI(@ISIN char(12), @RetryAttempt int = 1)
-RETURNS @Result TABLE (
-    FIGI char(12),
-    Ticker varchar(20),
-    SecurityName nvarchar(255),
-    ExchangeCode varchar(10),
-    Currency char(3),
-    SecurityType varchar(50),
-    IsSuccess bit,
-    ErrorMessage nvarchar(1000),
-    ErrorCategory varchar(50),
-    ResponseCode int,
-    ResponsePayload nvarchar(max)
-)
-AS
-BEGIN
-    -- Validate input
-    IF dbo.fn_ValidateISIN(@ISIN) = 0
-    BEGIN
-        INSERT INTO @Result VALUES (NULL, NULL, NULL, NULL, NULL, NULL, 0, 'Invalid ISIN format', 'Validation Error', 0, NULL);
-        RETURN;
-    END
-
-    DECLARE @HTTPObject int;
-    DECLARE @ResponseText nvarchar(max);
-    DECLARE @ResponseCode int;
-    DECLARE @IsSuccess bit = 0;
-    DECLARE @ErrorMessage nvarchar(1000);
-    DECLARE @ErrorCategory varchar(50);
-    
-    BEGIN TRY
-        -- Create and configure HTTP object
-        EXEC sp_OACreate 'MSXML2.ServerXMLHTTP.6.0', @HTTPObject OUT;
-        EXEC sp_OAMethod @HTTPObject, 'open', NULL, 'POST', 'https://api.openfigi.com/v3/mapping', 'false';
-        EXEC sp_OAMethod @HTTPObject, 'setRequestHeader', NULL, 'Content-Type', 'application/json';
-        EXEC sp_OAMethod @HTTPObject, 'setRequestHeader', NULL, 'X-OPENFIGI-APIKEY', 'edda2f69-53b3-42d9-b832-f6dda111af67';
-        
-        -- Send request
-        DECLARE @RequestPayload nvarchar(max) = '[{"idType":"ID_ISIN","idValue":"' + @ISIN + '"}]';
-        EXEC sp_OAMethod @HTTPObject, 'send', NULL, @RequestPayload;
-        
-        -- Get response
-        EXEC sp_OAGetProperty @HTTPObject, 'status', @ResponseCode OUT;
-        EXEC sp_OAGetProperty @HTTPObject, 'responseText', @ResponseText OUT;
-        EXEC sp_OADestroy @HTTPObject;
-        
-        IF @ResponseCode = 200
-        BEGIN
-            SET @IsSuccess = 1;
-            
-            -- Parse JSON response using utility function
-            DECLARE @FIGI char(12) = dbo.fn_ExtractJSONField(@ResponseText, 'figi');
-            DECLARE @Ticker varchar(20) = dbo.fn_ExtractJSONField(@ResponseText, 'ticker');
-            DECLARE @SecurityName nvarchar(255) = dbo.fn_ExtractJSONField(@ResponseText, 'name');
-            DECLARE @ExchangeCode varchar(10) = dbo.fn_ExtractJSONField(@ResponseText, 'exchCode');
-            DECLARE @Currency char(3) = dbo.fn_ExtractJSONField(@ResponseText, 'currency');
-            DECLARE @SecurityType varchar(50) = dbo.fn_ExtractJSONField(@ResponseText, 'securityType');
-            
-            -- Validate extracted data
-            IF @FIGI IS NOT NULL AND dbo.fn_ValidateFIGI(@FIGI) = 0 SET @FIGI = NULL;
-            IF @Ticker IS NOT NULL AND dbo.fn_ValidateTickerLength(@Ticker) = 0 SET @Ticker = NULL;
-            IF @SecurityName IS NOT NULL AND dbo.fn_ValidateSecurityName(@SecurityName) = 0 SET @SecurityName = NULL;
-            IF @ExchangeCode IS NOT NULL AND dbo.fn_ValidateExchangeCode(@ExchangeCode) = 0 SET @ExchangeCode = NULL;
-            IF @Currency IS NOT NULL AND dbo.fn_ValidateCurrencyCode(@Currency) = 0 SET @Currency = NULL;
-            
-            INSERT INTO @Result VALUES (@FIGI, @Ticker, @SecurityName, @ExchangeCode, @Currency, @SecurityType, @IsSuccess, NULL, NULL, @ResponseCode, @ResponseText);
-        END
-        ELSE
-        BEGIN
-            SET @ErrorCategory = dbo.fn_CategorizeAPIError(@ResponseCode);
-            SET @ErrorMessage = 'HTTP Error ' + CAST(@ResponseCode AS varchar(10));
-            INSERT INTO @Result VALUES (NULL, NULL, NULL, NULL, NULL, NULL, 0, @ErrorMessage, @ErrorCategory, @ResponseCode, @ResponseText);
-        END
-        
-    END TRY
-    BEGIN CATCH
-        IF @HTTPObject IS NOT NULL EXEC sp_OADestroy @HTTPObject;
-        SET @ErrorMessage = ERROR_MESSAGE();
-        SET @ErrorCategory = 'Network Error';
-        INSERT INTO @Result VALUES (NULL, NULL, NULL, NULL, NULL, NULL, 0, @ErrorMessage, @ErrorCategory, 0, NULL);
-    END CATCH
-    
-    RETURN;
-END;
-GO
+-- dbo.fn_CallOpenFIGIAPI was removed as Python module now handles API calls.
+-- The T-SQL stored procedure sp_LookupISINViaOpenFIGI will call a Python script.
 
 /**
  * @description Logs API call results to database
@@ -553,113 +451,187 @@ GO
  */
 CREATE PROCEDURE sp_LookupISINViaOpenFIGI
     @ISIN char(12),
-    @UpdateSecurityTable bit = 0,
-    @MaxRetries int = 3
+    @UpdateSecurityTable bit = 0, -- This parameter is now less directly used by SP, Python script handles upsert logic.
+                                 -- Kept for signature compatibility if needed by calling T-SQL.
+    @MaxRetries int = 3          -- Retries for executing the Python script itself.
 AS
 BEGIN
     SET NOCOUNT ON;
-    
-    -- Validate input
+
+    -- Validate input ISIN
     IF dbo.fn_ValidateISIN(@ISIN) = 0
     BEGIN
         PRINT 'ERROR: Invalid ISIN format: ' + @ISIN;
-        SELECT @ISIN as ISIN, 'ERROR' as Status, 'Invalid ISIN format' as ErrorMessage;
+        SELECT
+            @ISIN as ISIN,
+            NULL as RetrievedFIGI,
+            NULL as RetrievedBloombergCode,
+            NULL as RetrievedTicker,
+            NULL as RetrievedSecurityName,
+            NULL as RetrievedExchangeCode,
+            NULL as RetrievedCurrency,
+            NULL as DataQualityScore,
+            0 as ResponseTimeMs, -- Default value
+            0 as AttemptsUsed,
+            'ERROR' as Status,
+            'Invalid ISIN format' as ErrorMessage,
+            'Validation Error' as ErrorCategory,
+            NULL as ResponseCode;
         RETURN;
     END
-    
-    DECLARE @StartTime datetime2 = GETDATE();
+
+    -- Temp table to store output from xp_cmdshell
+    DECLARE @PythonOutput TABLE (OutputLine nvarchar(max));
+    DECLARE @Cmd nvarchar(4000);
+    -- IMPORTANT: Configure these paths appropriately for your environment
+    -- It's recommended to store these in a configuration table or use SQL Server Agent tokens if applicable.
+    DECLARE @PythonExecutablePath nvarchar(255) = N'python'; -- Or full path e.g., N'C:\Python311\python.exe'
+                                                              -- Ensure this python has access to the 'apis' module and dependencies.
+    DECLARE @ScriptPath nvarchar(255) = N'/app/apis/openfigi/run_figi_lookup.py'; -- Full path to your script
+
     DECLARE @CurrentRetry int = 1;
-    DECLARE @Success bit = 0;
-    
-    -- Retry loop
-    WHILE @CurrentRetry <= @MaxRetries AND @Success = 0
+    DECLARE @OverallSuccess bit = 0; -- Indicates if a definitive result (success or final error) was obtained
+    DECLARE @JsonOutput nvarchar(max);
+
+    -- Variables to store parsed JSON results
+    DECLARE @StatusFromJson nvarchar(50);
+    DECLARE @FIGIFromJson char(12);
+    DECLARE @BloombergCodeFromJson nvarchar(50);
+    DECLARE @TickerFromJson nvarchar(20);
+    DECLARE @SecurityNameFromJson nvarchar(255);
+    DECLARE @ExchangeCodeFromJson nvarchar(10);
+    DECLARE @CurrencyFromJson char(3);
+    DECLARE @SecurityTypeFromJson nvarchar(50);
+    DECLARE @DataQualityScoreFromJson decimal(3,2);
+    DECLARE @AttemptsUsedFromJson int;
+    DECLARE @ErrorMessageFromJson nvarchar(1000);
+    DECLARE @ErrorCategoryFromJson nvarchar(50);
+    DECLARE @ResponseCodeFromJson int;
+    DECLARE @StartTime datetime2; -- For overall script execution time
+    DECLARE @ResponseTimeMs int;
+
+    WHILE @CurrentRetry <= @MaxRetries AND @OverallSuccess = 0
     BEGIN
-        PRINT 'Lookup attempt ' + CAST(@CurrentRetry AS varchar(2)) + ' for ISIN: ' + @ISIN;
-        
+        PRINT 'Python script execution attempt ' + CAST(@CurrentRetry AS varchar(2)) + ' for ISIN: ' + @ISIN;
+        SET @StartTime = GETDATE();
+        SET @Cmd = @PythonExecutablePath + N' ' + @ScriptPath + N' ' + @ISIN;
+
+        -- Clear previous output and execute command
+        DELETE FROM @PythonOutput;
         BEGIN TRY
-            -- Call API
-            DECLARE @APIResult TABLE (
-                FIGI char(12), Ticker varchar(20), SecurityName nvarchar(255),
-                ExchangeCode varchar(10), Currency char(3), SecurityType varchar(50),
-                IsSuccess bit, ErrorMessage nvarchar(1000), ErrorCategory varchar(50),
-                ResponseCode int, ResponsePayload nvarchar(max)
-            );
-            
-            INSERT INTO @APIResult SELECT * FROM dbo.fn_CallOpenFIGIAPI(@ISIN, @CurrentRetry);
-            
-            -- Process results
-            DECLARE @FIGI char(12), @Ticker varchar(20), @SecurityName nvarchar(255);
-            DECLARE @ExchangeCode varchar(10), @Currency char(3), @SecurityType varchar(50);
-            DECLARE @IsSuccess bit, @ErrorMessage nvarchar(1000), @ErrorCategory varchar(50);
-            DECLARE @ResponseCode int, @ResponsePayload nvarchar(max);
-            
-            SELECT @FIGI = FIGI, @Ticker = Ticker, @SecurityName = SecurityName,
-                   @ExchangeCode = ExchangeCode, @Currency = Currency, @SecurityType = SecurityType,
-                   @IsSuccess = IsSuccess, @ErrorMessage = ErrorMessage, @ErrorCategory = ErrorCategory,
-                   @ResponseCode = ResponseCode, @ResponsePayload = ResponsePayload
-            FROM @APIResult;
-            
-            DECLARE @ResponseTime int = DATEDIFF(MILLISECOND, @StartTime, GETDATE());
-            DECLARE @BloombergCode varchar(50) = dbo.fn_BuildBloombergCode(@Ticker, @ExchangeCode, @SecurityType);
-            DECLARE @DataQuality decimal(3,2) = dbo.fn_CalculateDataQualityScore(@FIGI, @Ticker, @BloombergCode, @SecurityName, @ExchangeCode, @Currency);
-            
-            -- Log API call
-            EXEC sp_LogAPICall @ISIN, @ResponseCode, @IsSuccess, @ErrorMessage, @ErrorCategory, @ResponsePayload, @ResponseTime, @CurrentRetry;
-            
-            IF @IsSuccess = 1
+            INSERT INTO @PythonOutput (OutputLine)
+            EXEC xp_cmdshell @Cmd;
+
+            -- Concatenate lines if output is multi-line (xp_cmdshell can split)
+            -- Python script is designed to print a single JSON line to stdout.
+            SELECT @JsonOutput = OutputLine FROM @PythonOutput WHERE OutputLine IS NOT NULL;
+                                                                  -- AND OutputLine NOT LIKE '%Warning: Unmapped OpenFIGI securityType%' -- Filter out python print warnings
+
+            IF @JsonOutput IS NULL OR LTRIM(RTRIM(@JsonOutput)) = '' OR LTRIM(RTRIM(@JsonOutput)) = 'NULL'
             BEGIN
-                SET @Success = 1;
-                PRINT 'SUCCESS - Quality Score: ' + CAST(@DataQuality AS varchar(5));
-                
-                -- Update security table if requested
-                IF @UpdateSecurityTable = 1
+                 -- Handle cases where xp_cmdshell returns NULL or empty, or if Python script had no stdout
+                IF EXISTS (SELECT 1 FROM @PythonOutput WHERE OutputLine LIKE '%Traceback%')
                 BEGIN
-                    EXEC sp_UpsertSecurityData @ISIN, @FIGI, @Ticker, @BloombergCode, @SecurityName, @SecurityType, @ExchangeCode, @Currency, @DataQuality, @CurrentRetry;
-                END
-                
-                -- Return success results
-                SELECT @ISIN as ISIN, @FIGI as RetrievedFIGI, @BloombergCode as RetrievedBloombergCode,
-                       @Ticker as RetrievedTicker, @SecurityName as RetrievedSecurityName,
-                       @ExchangeCode as RetrievedExchangeCode, @Currency as RetrievedCurrency,
-                       @DataQuality as DataQualityScore, @ResponseTime as ResponseTimeMs,
-                       @CurrentRetry as AttemptsUsed, 'SUCCESS' as Status;
-            END
-            ELSE
-            BEGIN
-                -- Handle retries for specific error types
-                IF @ErrorCategory IN ('Rate Limited', 'Server Error', 'Network Error') AND @CurrentRetry < @MaxRetries
-                BEGIN
-                    PRINT 'Retryable error, waiting 5 seconds...';
-                    WAITFOR DELAY '00:00:05';
-                    SET @CurrentRetry = @CurrentRetry + 1;
+                    SELECT @ErrorMessageFromJson = COALESCE(@ErrorMessageFromJson + '; ', '') + OutputLine
+                    FROM @PythonOutput WHERE OutputLine LIKE '%Traceback%' OR OutputLine LIKE '%Error:%';
+                    SET @ErrorMessageFromJson = LEFT('Python script error: ' + @ErrorMessageFromJson, 1000);
                 END
                 ELSE
                 BEGIN
-                    SET @Success = 1;
-                    SELECT @ISIN as ISIN, 'ERROR' as Status, @ErrorMessage as ErrorMessage,
-                           @ErrorCategory as ErrorCategory, @ResponseCode as ResponseCode, @CurrentRetry as AttemptsUsed;
+                     SET @ErrorMessageFromJson = 'Python script returned no parsable output.';
                 END
+                SET @ErrorCategoryFromJson = 'Python Execution Error';
+                SET @StatusFromJson = 'ERROR';
+                PRINT 'Error: ' + @ErrorMessageFromJson;
             END
-            
-        END TRY
-        BEGIN CATCH
-            DECLARE @CatchError nvarchar(4000) = ERROR_MESSAGE();
-            EXEC sp_LogAPICall @ISIN, 0, 0, @CatchError, 'Processing Error', NULL, NULL, @CurrentRetry;
-            
-            IF @CurrentRetry < @MaxRetries
+            ELSE IF ISJSON(@JsonOutput) = 1
             BEGIN
-                PRINT 'Processing error, retrying...';
-                SET @CurrentRetry = @CurrentRetry + 1;
-                WAITFOR DELAY '00:00:03';
+                -- Parse the JSON output from Python
+                SELECT
+                    @StatusFromJson         = JSON_VALUE(@JsonOutput, '$.status'),
+                    @FIGIFromJson           = JSON_VALUE(@JsonOutput, '$.figi'),
+                    @BloombergCodeFromJson  = JSON_VALUE(@JsonOutput, '$.bloomberg_code'),
+                    @TickerFromJson         = JSON_VALUE(@JsonOutput, '$.ticker'),
+                    @SecurityNameFromJson   = JSON_VALUE(@JsonOutput, '$.security_name'),
+                    @ExchangeCodeFromJson   = JSON_VALUE(@JsonOutput, '$.exchange_code'),
+                    @CurrencyFromJson       = JSON_VALUE(@JsonOutput, '$.currency'),
+                    @SecurityTypeFromJson   = JSON_VALUE(@JsonOutput, '$.security_type'),
+                    @DataQualityScoreFromJson = TRY_CAST(JSON_VALUE(@JsonOutput, '$.data_quality_score') AS decimal(3,2)),
+                    @AttemptsUsedFromJson   = TRY_CAST(JSON_VALUE(@JsonOutput, '$.attempts_used') AS int),
+                    @ErrorMessageFromJson   = JSON_VALUE(@JsonOutput, '$.error_message'),
+                    @ErrorCategoryFromJson  = JSON_VALUE(@JsonOutput, '$.error_category'),
+                    @ResponseCodeFromJson   = TRY_CAST(JSON_VALUE(@JsonOutput, '$.response_code') AS int);
+
+                IF @StatusFromJson = 'SUCCESS'
+                BEGIN
+                    SET @OverallSuccess = 1;
+                    PRINT 'Python script SUCCESS - FIGI: ' + ISNULL(@FIGIFromJson, 'N/A') + ', DQ: ' + ISNULL(CAST(@DataQualityScoreFromJson AS varchar(5)), 'N/A');
+                END
+                ELSE IF @StatusFromJson = 'NO_DATA' -- No data found by FIGI is a final state
+                BEGIN
+                    SET @OverallSuccess = 1;
+                    PRINT 'Python script NO_DATA - ' + @ErrorMessageFromJson;
+                END
+                ELSE -- Status is ERROR or other from Python
+                BEGIN
+                     PRINT 'Python script returned ERROR status: ' + ISNULL(@ErrorMessageFromJson, 'Unknown Python Error');
+                     -- If error is not retryable from Python's perspective, or if we want SP to decide retries
+                     IF @ErrorCategoryFromJson NOT IN ('Rate Limited', 'Server Error', 'Network Error') OR @CurrentRetry >= @MaxRetries
+                     BEGIN
+                        SET @OverallSuccess = 1; -- Mark as overall success to stop retrying SP call
+                     END
+                END
             END
             ELSE
             BEGIN
-                SELECT @ISIN as ISIN, 'ERROR' as Status, @CatchError as ErrorMessage,
-                       'Processing Error' as ErrorCategory, @CurrentRetry as AttemptsUsed;
-                RETURN;
+                SET @StatusFromJson = 'ERROR';
+                SET @ErrorMessageFromJson = 'Invalid JSON output from Python script: ' + LEFT(@JsonOutput, 500);
+                SET @ErrorCategoryFromJson = 'Python JSON Error';
+                PRINT @ErrorMessageFromJson;
+                SET @OverallSuccess = 1; -- Stop retrying if output is fundamentally broken
             END
+        END TRY
+        BEGIN CATCH
+            SET @StatusFromJson = 'ERROR';
+            SET @ErrorMessageFromJson = 'xp_cmdshell execution failed: ' + ERROR_MESSAGE();
+            SET @ErrorCategoryFromJson = 'xp_cmdshell Error';
+            PRINT @ErrorMessageFromJson;
+            -- If xp_cmdshell itself fails, it might be retryable depending on the error
+            IF @CurrentRetry >= @MaxRetries SET @OverallSuccess = 1;
         END CATCH
-    END
+
+        SET @ResponseTimeMs = DATEDIFF(MILLISECOND, @StartTime, GETDATE());
+
+        -- If not a definitive success/final error from Python, and retries remain, retry script execution
+        IF @OverallSuccess = 0 AND @CurrentRetry < @MaxRetries
+        BEGIN
+            PRINT 'Python script execution issue, retrying in 3 seconds...';
+            WAITFOR DELAY '00:00:03';
+            SET @CurrentRetry = @CurrentRetry + 1;
+        END
+        ELSE
+        BEGIN
+            SET @OverallSuccess = 1; -- Ensure loop terminates
+        END
+    END -- End WHILE retry loop
+
+    -- Return results based on the outcome of Python script execution
+    SELECT
+        @ISIN as ISIN,
+        @FIGIFromJson as RetrievedFIGI,
+        @BloombergCodeFromJson as RetrievedBloombergCode,
+        @TickerFromJson as RetrievedTicker,
+        @SecurityNameFromJson as RetrievedSecurityName,
+        @ExchangeCodeFromJson as RetrievedExchangeCode,
+        @CurrencyFromJson as RetrievedCurrency,
+        @DataQualityScoreFromJson as DataQualityScore,
+        @ResponseTimeMs as ResponseTimeMs, -- This is now overall script exec time for the last attempt
+        @AttemptsUsedFromJson as AttemptsUsed, -- This is attempts from Python's internal retry for API
+        @StatusFromJson as Status,
+        @ErrorMessageFromJson as ErrorMessage,
+        @ErrorCategoryFromJson as ErrorCategory,
+        @ResponseCodeFromJson as ResponseCode;
+
 END;
 GO
 
