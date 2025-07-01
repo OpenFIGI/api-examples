@@ -28,7 +28,7 @@ string OpenFigiApiKey = Environment.GetEnvironmentVariable("OPENFIGI_API_KEY"); 
 // Create client with default properties
 var client = new HttpClient();
 client.BaseAddress = new Uri(OpenFigiBaseUrl);
-client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("X-OPENFIGI-APIKEY", OpenFigiApiKey);
+client.DefaultRequestHeaders.Add("X-OPENFIGI-APIKEY", OpenFigiApiKey);
 
 /// <summary>
 /// Make an api call to `api.openfigi.com`.
