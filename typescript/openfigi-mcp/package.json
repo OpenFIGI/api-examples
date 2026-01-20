@@ -1,0 +1,12 @@
+{
+  "name": "openfigi-mcp-example",
+  "version": "1.0.0",
+  "description": "OpenFIGI MCP Server example",
+  "type": "module",
+  "scripts": {
+    "start": "npx openfigi-mcp"
+  },
+  "dependencies": {
+    "openfigi-mcp": "^0.4.1"
+  }
+}
