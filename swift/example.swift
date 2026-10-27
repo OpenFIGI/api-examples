@@ -22,7 +22,7 @@ import Foundation
 /*
  See https://www.openfigi.com/api for more information.
  
- This script is written to be run with Swift 6.0 without any external dependencies.
+ This script is written to be run with Swift 6.4 without any external dependencies.
  For more involved use cases, consider using open source packages via Swift Package Manager.
  */
 

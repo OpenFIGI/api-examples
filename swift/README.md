@@ -1,11 +1,11 @@
 # OpenFIGI Swift example
 
-This script is written to be run with Swift 6.0 without any external dependencies.
-Example code is tested with `Swift 6.0.3` on Ubuntu 24.04.1 LTS 
+This script is written to be run with Swift 6.4 without any external dependencies.
+Example code is tested with `Swift 6.4.1` on Ubuntu 26.04.1 LTS 
 
 ## Instructions
 
-Prerequisites: `Swift 6.0` must be installed.
+Prerequisites: `Swift 6.4` must be installed.
 
 ```bash
 # Optional: Export your API key

@@ -1,11 +1,11 @@
 # OpenFIGI Python3 example
 
-This script is written to be run by python3.12 without any external libraries.
-Example code is tested with `Python 3.12.7`.
+This script is written to be run by python3.15 without any external libraries.
+Example code is tested with `Python 3.15.1`.
 
 ## Instructions
 
-Prerequisites: `Python3.12` must be installed.
+Prerequisites: `Python3.15` must be installed.
 
 ```bash
 # Optional: Export your API key

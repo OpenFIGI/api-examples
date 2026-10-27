@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0
+FROM mcr.microsoft.com/dotnet/sdk:10.0
 
 # https://www.nuget.org/packages/dotnet-script/
-RUN dotnet tool install dotnet-script --tool-path /usr/bin
+RUN dotnet tool install dotnet-script --version "2.*" --tool-path /usr/bin
 
 WORKDIR /OpenFIGI
 

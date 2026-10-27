@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.12
+#!/usr/bin/env python3
 
 # Copyright 2017 Bloomberg Finance L.P.
 #
@@ -22,7 +22,7 @@ import os
 """
 See https://www.openfigi.com/api for more information.
 
-This script is written to be run by python3 - tested with python3.12 - without any external libraries.
+This script is written to be run by python3 - tested with python3.15 - without any external libraries.
 For more involved use cases, consider using open source packages: https://pypi.org/
 """
 

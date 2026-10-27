@@ -1,11 +1,11 @@
 # OpenFIGI API C# Example
 
 This .NET example is written to be run as a script with [`dotnet-script`](https://www.nuget.org/packages/dotnet-script/).
-Example code is tested with `dotnet v8.0.404` and `dotnet-script v1.6.0`.
+Example code is tested with `dotnet v10.0.403` and `dotnet-script v2.0.1`.
 
 ## Instructions
 
-Prerequisites: `.NET 8.0` and [`dotnet-script` package](https://www.nuget.org/packages/dotnet-script/) must be installed.
+Prerequisites: `.NET 10.0` and [`dotnet-script` package](https://www.nuget.org/packages/dotnet-script/) must be installed.
 
 ```bash
 # Optional: Export your API key
