@@ -21,7 +21,7 @@ limitations under the License.
 /**
  * See https://www.openfigi.com/api for more information on the OpenFIGI API.
  *
- * This script is written to be run by Node.js - tested with node v22 - without any external libraries.
+ * This script is written to be run by Node.js - tested with node v24 - without any external libraries.
  * For more involved use cases, consider using a package manager and open source
  * packages: https://www.npmjs.com/
  */

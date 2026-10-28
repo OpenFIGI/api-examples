@@ -3,11 +3,11 @@
 This script is written to be build by JDK and run on JVM without any external libraries.
 End users are recommended to use a json library for serializing requests and deserializing responses.
 
-Example code is tested with:
+Example code is tested with Eclipse Temurin 25 (an OpenJDK build):
 
 ```
-openjdk 21 2023-09-19
-OpenJDK Runtime Environment (build 21+35-2513)
+openjdk version "25.0.4.1" 2026-08-18 LTS
+OpenJDK Runtime Environment Temurin-25.0.4.1+1 (build 25.0.4.1+1-LTS)
 ```
 
 ## Instructions

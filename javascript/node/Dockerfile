@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM node:22.11-slim
+FROM node:24.22.1-slim
 
 WORKDIR /OpenFIGI
 

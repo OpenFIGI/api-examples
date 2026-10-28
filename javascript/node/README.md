@@ -1,7 +1,7 @@
 # OpenFIGI Javascript example
 
 This script is written to be run by Node.js without any external libraries.
-Example code is tested with node `v22.11.0`
+Example code is tested with node `v24.22.1`
 
 ## Instructions
 

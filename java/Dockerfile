@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM openjdk:21
+FROM eclipse-temurin:25
 
 WORKDIR /OpenFIGI
 
